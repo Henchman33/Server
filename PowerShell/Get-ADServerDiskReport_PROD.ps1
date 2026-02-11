@@ -32,7 +32,7 @@ param(
 # Default (Option B) — Desktop of user running script:
 $ReportFolder = Join-Path -Path ([Environment]::GetFolderPath('Desktop')) -ChildPath 'Server Low Disk Space Report'
 
-# Option C (custom path) — uncomment to use
+# Option C (custom path) — uncomment to use and adjust location as needed
 # $ReportFolder = 'D:\Reports\Server Low Disk Space Report'
 
 # Ensure folder exists
