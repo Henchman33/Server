@@ -1,12 +1,17 @@
-# -DeleteOlderThanDays 14 -ClearCCMCache
+# -DeleteOlderThanDays 7 -ClearCCMCache
 
 # -ClearCCMCache
 # -ClearUpdateCache
 # - To remove only update cache older than 30 days:
-# - DeleteOlderThanDays 30 -ClearUpdateCache
+# -DeleteOlderThanDays 7 -ClearUpdateCache
 
+# ***Example***
+# PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache.ps1 -ClearCCMCache <-- Don't USer
+# PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache_PROD.ps1 -ClearCCMCache  <-- Don't USE
+# PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache_PROD.ps1 -DeleteOlderThanDays 7 -ClearUpdateCache  <--USE :-D
 
-<#⚠️ What Will Happen After This Runs
+<#
+⚠️ What Will Happen After This Runs
 
 CCMCache fully wiped
 
