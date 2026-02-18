@@ -1,3 +1,35 @@
+# -DeleteOlderThanDays 14 -ClearCCMCache
+
+# -ClearCCMCache
+<#
+
+⚠️ What Will Happen After This Runs
+
+CCMCache fully wiped
+
+Required apps will re-download if needed
+
+Temporary spike in DP traffic
+
+C:\ space immediately reclaimed
+
+Client recreates cache folder automatically
+
+🏆 Enterprise Best Practice For Your Scenario
+
+For general member servers:
+
+Use 7–14 day temp cleanup
+
+Full CCMCache wipe is fine
+
+Run outside patch window
+
+Deploy to small collection first
+
+Monitor ccmexec.log and CacheManager.log if needed 
+#>
+
 param(
     [string[]]$AdditionalPaths,
     [int]$DeleteOlderThanDays = 7,
