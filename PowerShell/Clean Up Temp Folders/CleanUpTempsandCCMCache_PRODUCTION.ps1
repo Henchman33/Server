@@ -11,7 +11,7 @@
 # PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache_PROD.ps1 -DeleteOlderThanDays 7 -ClearUpdateCache  <--USE :-)
 
 <#
-⚠️ What Will Happen After This Runs
+What Will Happen After This Runs
 
 CCMCache fully wiped
 
@@ -23,7 +23,7 @@ C:\ space immediately reclaimed
 
 Client recreates cache folder automatically
 
-🏆 Enterprise Best Practice For Your Scenario
+Enterprise Best Practice For Your Scenario
 
 For general member servers:
 
