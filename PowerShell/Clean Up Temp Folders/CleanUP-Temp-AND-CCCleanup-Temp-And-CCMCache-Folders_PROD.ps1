@@ -96,19 +96,16 @@ if ($ClearCCMCache) {
     try {
         $UIResourceMgr = New-Object -ComObject UIResource.UIResourceMgr
         $Cache = $UIResourceMgr.GetCacheInfo()
-        $CacheElements = $Cache.GetCacheElements()
 
-        foreach ($Element in $CacheElements) {
-            try {
-                $Cache.DeleteCacheElement($Element.CacheElementID)
-                Write-Log "Removed CCMCache Item ID: $($Element.CacheElementID)"
-            }
-            catch {
-                Write-Log "Failed to remove CCMCache Item ID: $($Element.CacheElementID)"
-            }
-        }
+        $Cache.TotalSize = 1
+        Write-Log "CCMCache size temporarily reduced to 1MB."
 
-        Write-Log "CCMCache Cleanup Completed."
+        Start-Sleep -Seconds 5
+
+        $Cache.TotalSize = 5120   # Reset to 5GB (adjust if needed)
+        Write-Log "CCMCache size reset to 5GB."
+
+        Write-Log "CCMCache Cleanup Triggered."
     }
     catch {
         Write-Log "CCMCache Cleanup Failed: $_"
