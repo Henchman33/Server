@@ -26,7 +26,7 @@ param(
     [switch]$ClearCCMCache
 )
 
-$LogPath = "C:\Windows\Temp\ServerCleanup_$(Get-Date -Format yyyyMMdd_HHmmss).log"
+$LogPath = "C:\TempCleanup\Logs\TempCleanup_$(Get-Date -Format yyyyMMdd_HHmmss).log"
 
 # Default temp locations
 $DefaultPaths = @(
