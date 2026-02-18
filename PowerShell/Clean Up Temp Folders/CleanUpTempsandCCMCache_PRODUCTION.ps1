@@ -1,5 +1,5 @@
 # -DeleteOlderThanDays 7 -ClearCCMCache
-
+# NEW powershell.exe -ExecutionPolicy Bypass -NoProfile -File .\Cleanup-Temp-And-CCMCache_PROD.ps1 -MinimumAgeHours 1 -AdditionalPaths "C:\Temp" -IncludeLogs -Silent
 # -ClearCCMCache
 # -ClearUpdateCache
 # - To remove only update cache older than 30 days:
