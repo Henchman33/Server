@@ -1,9 +1,12 @@
 # -DeleteOlderThanDays 14 -ClearCCMCache
 
 # -ClearCCMCache
-<#
+# -ClearUpdateCache
+# - To remove only update cache older than 30 days:
+# - DeleteOlderThanDays 30 -ClearUpdateCache
 
-⚠️ What Will Happen After This Runs
+
+<#⚠️ What Will Happen After This Runs
 
 CCMCache fully wiped
 
@@ -29,15 +32,16 @@ Deploy to small collection first
 
 Monitor ccmexec.log and CacheManager.log if needed 
 #>
-
+# $LogPath = "C:\TempCleanup\Logs\TempCleanup_$(Get-Date -Format yyyyMMdd_HHmmss).log"
 param(
     [string[]]$AdditionalPaths,
     [int]$DeleteOlderThanDays = 7,
-    [switch]$ClearCCMCache
+    [switch]$ClearUpdateCache
 )
 
 $LogPath = "C:\TempCleanup\Logs\TempCleanup_$(Get-Date -Format yyyyMMdd_HHmmss).log"
 
+# Default temp locations
 $DefaultPaths = @(
     "C:\Temp",
     "C:\Windows\Temp",
@@ -57,11 +61,11 @@ function Write-Log {
 
 Write-Log "===== Server Cleanup Started ====="
 Write-Log "DeleteOlderThanDays: $DeleteOlderThanDays"
-Write-Log "ClearCCMCache: $ClearCCMCache"
+Write-Log "ClearUpdateCache: $ClearUpdateCache"
 
-# =========================
-# TEMP CLEANUP
-# =========================
+# ==========================================================
+# TEMP FILE CLEANUP
+# ==========================================================
 
 foreach ($Path in $PathsToClean) {
 
@@ -70,7 +74,7 @@ foreach ($Path in $PathsToClean) {
         continue
     }
 
-    Write-Log "Processing: $Path"
+    Write-Log "Processing Temp Path: $Path"
 
     try {
         $Cutoff = (Get-Date).AddDays(-$DeleteOlderThanDays)
@@ -84,7 +88,7 @@ foreach ($Path in $PathsToClean) {
                 Write-Log "Removed: $($Item.FullName)"
             }
             catch {
-                Write-Log "Skipped: $($Item.FullName)"
+                Write-Log "Skipped (In Use/Protected): $($Item.FullName)"
             }
         }
     }
@@ -93,36 +97,53 @@ foreach ($Path in $PathsToClean) {
     }
 }
 
-# =========================
-# FULL CCMCACHE WIPE (RELIABLE METHOD)
-# =========================
+# ==========================================================
+# SOFTWARE UPDATE CCMCACHE CLEANUP ONLY
+# ==========================================================
 
-if ($ClearCCMCache) {
+if ($ClearUpdateCache) {
 
-    Write-Log "Starting FULL CCMCache cleanup..."
+    Write-Log "Starting Software Update CCMCache Cleanup..."
 
     try {
+        $UIResourceMgr = New-Object -ComObject UIResource.UIResourceMgr
+        $Cache = $UIResourceMgr.GetCacheInfo()
+        $CacheElements = $Cache.GetCacheElements()
 
-        Write-Log "Stopping CcmExec service..."
-        Stop-Service CcmExec -Force -ErrorAction Stop
-        Start-Sleep -Seconds 5
+        foreach ($Element in $CacheElements) {
 
-        $CachePath = "C:\Windows\ccmcache"
+            # ContentType 2 = Software Updates
+            if ($Element.ContentType -eq 2) {
 
-        if (Test-Path $CachePath) {
-            Remove-Item $CachePath -Recurse -Force -ErrorAction Stop
-            Write-Log "CCMCache folder removed."
+                $RemoveItem = $true
+
+                if ($DeleteOlderThanDays -gt 0) {
+                    $Cutoff = (Get-Date).AddDays(-$DeleteOlderThanDays)
+                    if ($Element.LastReferenceTime -gt $Cutoff) {
+                        $RemoveItem = $false
+                    }
+                }
+
+                if ($RemoveItem) {
+                    try {
+                        $Cache.DeleteCacheElement($Element.CacheElementID)
+                        Write-Log "Removed Update Cache ID: $($Element.CacheElementID)"
+                    }
+                    catch {
+                        Write-Log "Failed to remove ID: $($Element.CacheElementID)"
+                    }
+                }
+            }
         }
 
-        Write-Log "Starting CcmExec service..."
-        Start-Service CcmExec -ErrorAction Stop
-
-        Write-Log "CCMCache cleanup completed successfully."
+        Write-Log "Software Update CCMCache Cleanup Completed."
     }
     catch {
-        Write-Log "CCMCache cleanup failed: $_"
+        Write-Log "Update Cache Cleanup Failed: $_"
     }
 }
 
 Write-Log "===== Server Cleanup Completed ====="
 exit 0
+
+
