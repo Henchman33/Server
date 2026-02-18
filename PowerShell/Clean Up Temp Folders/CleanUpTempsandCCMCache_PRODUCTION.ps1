@@ -6,9 +6,9 @@
 # -DeleteOlderThanDays 7 -ClearUpdateCache
 
 # ***Example***
-# PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache.ps1 -ClearCCMCache <-- Don't USer
+# PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache.ps1 -ClearCCMCache <-- Don't USE
 # PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache_PROD.ps1 -ClearCCMCache  <-- Don't USE
-# PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache_PROD.ps1 -DeleteOlderThanDays 7 -ClearUpdateCache  <--USE :-D
+# PS C:\users\user\Desktop> .\Cleanup-Temp-And-CCMCache_PROD.ps1 -DeleteOlderThanDays 7 -ClearUpdateCache  <--USE :-)
 
 <#
 ⚠️ What Will Happen After This Runs
