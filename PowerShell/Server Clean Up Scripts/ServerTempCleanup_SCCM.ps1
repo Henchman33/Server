@@ -70,7 +70,7 @@ param(
 
     # -------- SCCM client cache --------
     [bool]$CleanCcmCache = $true,
-    [int]$CcmCacheMaxAgeDays = 32,
+    [int]$CcmCacheMaxAgeDays = 30,
     [string]$CcmCachePath,  # if empty, auto-detect
 
     # -------- Old profile cleanup --------
