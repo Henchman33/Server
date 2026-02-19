@@ -54,30 +54,37 @@ ServerTempCleanup_SCCM.ps1
 • Supports -WhatIf for pilot runs (temp + ccmcache + profiles).
 • Exit code: 0=success, 1=completed with error(s).
 #>
+<#
+ServerTempCleanup_SCCM_10param.ps1
+--------------------------------------------------------------------------------
+• ≤10 parameters for SCCM Run Scripts compatibility.
+• Logs: C:\TempCleanup\Logs\TempCleanup_<COMPUTER>_<YYYYMMDD>.log
+• Temp cleanup (excludes C:\Temp), age-based, optional includes and -IncludeLogs.
+• SCCM Client Cache: delete items older than N days (default 32), keep root.
+  - Auto-override path with -CcmCachePath if needed.
+• Old user profiles: remove profiles not used in ≥ 365 days.
+• Supports -WhatIf for pilots; use -ListFiles to print [PREVIEW] items.
+• Exit code: 0=success, 1=completed with error(s).
+#>
 
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Low')]
 param(
-    # -------- Temp cleanup options --------
+    # -------- Temp cleanup options (C:\Temp is intentionally EXCLUDED) --------
     [int]$MinimumAgeHours = 0,
-    [string[]]$AdditionalPaths = @(),
-    [string[]]$ExcludePatterns = @('*.log','*.evtx','*.dmp'),
     [switch]$IncludeLogs,
+    [string[]]$AdditionalPaths = @(),
 
     # -------- Logging / output --------
     [string]$LogDirectory = 'C:\TempCleanup\Logs',
     [switch]$Silent,
-    [switch]$ListFiles,   # in WhatIf mode, list each candidate item
+    [switch]$ListFiles,
 
-    # -------- SCCM client cache --------
-    [bool]$CleanCcmCache = $true,
-    [int]$CcmCacheMaxAgeDays = 30,
-    [string]$CcmCachePath,  # if empty, auto-detect
+    # -------- SCCM client cache (age-based) --------
+    [int]$CcmCacheMaxAgeDays = 32,
+    [string]$CcmCachePath,   # if empty, auto-detect
 
-    # -------- Old profile cleanup --------
-    [bool]$CleanOldProfiles = $true,
+    # -------- Old profile cleanup (age-based) --------
     [int]$ProfileMaxAgeDays = 365
-
-    # Note: C:\Temp is intentionally EXCLUDED per your request
 )
 
 # -------------------- Setup & Metrics --------------------
@@ -94,6 +101,11 @@ $script:CcmDelFiles  = 0; $script:CcmDelDirs  = 0; $script:CcmDelBytes  = 0
 
 # Profiles metrics
 $script:ProfCandidates = 0; $script:ProfDeleted = 0; $script:ProfBytesCand = 0; $script:ProfBytesDel = 0
+
+# Defaults baked in (no params to keep under limit)
+$ExcludePatterns = @('*.log','*.evtx','*.dmp')   # can be overridden via -IncludeLogs switch
+$CleanCcmCache   = $true
+$CleanOldProfiles= $true
 
 # -------------------- Helpers --------------------
 function New-Directory([string]$Path) {
@@ -116,9 +128,7 @@ function Write-Log {
         $line = "[{0}] [{1}] {2}" -f (Get-Timestamp), $Level, $Message
         Add-Content -LiteralPath $global:LogFile -Value $line
         if (-not $Silent) { Write-Host $line }
-    } catch {
-        # Do not fail cleanup because of logging
-    }
+    } catch { }
 }
 
 function Format-Bytes([long]$Bytes) {
@@ -139,7 +149,7 @@ function Get-DirectorySize([string]$Path) {
 
 function Get-DefaultTempPaths {
     $paths = @()
-    # OS/service temp (C:\Temp intentionally NOT included)
+    # OS/service temp (C:\Temp intentionally NOT included per request)
     $paths += "$env:windir\Temp"
     $paths += "C:\Windows\ServiceProfiles\LocalService\AppData\Local\Temp"
     $paths += "C:\Windows\ServiceProfiles\NetworkService\AppData\Local\Temp"
@@ -152,7 +162,6 @@ function Get-DefaultTempPaths {
         }
     }
 
-    # Unique, expanded, and existing
     $paths | ForEach-Object { Expand-Env $_ } | Select-Object -Unique
 }
 
@@ -282,7 +291,7 @@ catch {
 }
 
 # -------------------- SCCM CLIENT CACHE (age-based) --------------------
-if ($CleanCcmCache) {
+if ($true) {
     try {
         $resolvedCcmPath = Get-CcmCachePath -Override $CcmCachePath
         if (Test-Path -LiteralPath $resolvedCcmPath) {
@@ -327,7 +336,6 @@ if ($CleanCcmCache) {
                         }
                         if ($PSCmdlet.ShouldProcess($d.FullName, 'Remove SCCM cache empty directory')) {
                             try {
-                                # Should be empty; size measurement is defensive
                                 $script:CcmDelBytes += Get-DirectorySize -Path $d.FullName
                                 Remove-Item -LiteralPath $d.FullName -Force -ErrorAction Stop
                                 $script:CcmDelDirs++
@@ -351,7 +359,7 @@ if ($CleanCcmCache) {
 }
 
 # -------------------- OLD USER PROFILES (≥ N days) --------------------
-if ($CleanOldProfiles) {
+if ($true) {
     try {
         $profileCutoff = (Get-Date).AddDays(-1 * [Math]::Abs($ProfileMaxAgeDays))
         Write-Log "Removing local user profiles unused since on/before: $profileCutoff" 'INFO'
@@ -369,7 +377,6 @@ if ($CleanOldProfiles) {
             if ($p.SID -in @('S-1-5-18','S-1-5-19','S-1-5-20', $currentSid)) { continue }
             if ($p.LocalPath -match '\\Users\\(Default|Default User|Public)($|\\)') { continue }
 
-            # Resolve last use
             $lastUse = $null
             if ($p.LastUseTime) {
                 try { $lastUse = [System.Management.ManagementDateTimeConverter]::ToDateTime($p.LastUseTime) } catch { $lastUse = $null }
@@ -427,3 +434,4 @@ if ($script:ErrorCount -gt 0) {
     exit 0
 }
 ``
+
