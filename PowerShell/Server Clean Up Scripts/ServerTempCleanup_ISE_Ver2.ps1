@@ -4,11 +4,22 @@
 ✅ Preserve the ccmcache root folder.
 ✅ Do NOT clean C:\Temp (as requested).
 ✅ Keep all other behavior from before: temp cleanup (excluding C:\Temp), old user profile removal (≥ 365 days), and logging to C:\TempCleanup\Logs with the same format/metrics.
+#>
+<#Notes & quick tweaks
 
+Change the 32-day cache rule: set $CcmCacheMaxAgeDays = 32.
+The ccmcache logic:
+Deletes files older than the cutoff anywhere under ccmcache.
+Then deletes empty directories older than the cutoff (bottom‑up).
+The root C:\Windows\ccmcache is always preserved.
+
+C:\Temp remains excluded from temp cleanup per your instruction.
+Logs: C:\TempCleanup\Logs\TempCleanup_<SERVER>_<YYYYMMDD>.log
 
 Run: Open PowerShell ISE as Administrator, paste the script, and press F5.
 If you want a different age for ccmcache, change $CcmCacheMaxAgeDays = 32 at the top.
 #>
+
 <#
 ISE-Ready Temp Cleanup (Immediate Delete) with Full Logging + CCMCache Age Policy + Old Profiles
 -----------------------------------------------------------------------------------------------
