@@ -1,4 +1,4 @@
-# Migrate Share Permissions from one system to another (Using same disk image in vSphere, or local hard disk or SSD)
+# Migrate Share Permissions from one system to another (Using same disk image in vSphere, or local hard disk, SSD)
 
 ## Migrate the share permissions:
 On the OLD server > Start > Run > Regedit Run as Administrator - > Hit Enter
